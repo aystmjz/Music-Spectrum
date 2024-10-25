@@ -1,0 +1,14 @@
+/.vscode
+/.Xil
+/music_spectrum.cache
+/music_spectrum.hw
+/music_spectrum.ip_user_files
+/music_spectrum.runs
+/music_spectrum.sdk
+/music_spectrum.sim
+/Packages
+/vivado.jou
+/vivado.log
+/vivado_4660.backup.jou
+/vivado_4660.backup.log
+/vivado_pid4660.str
