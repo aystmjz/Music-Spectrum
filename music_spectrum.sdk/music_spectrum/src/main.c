@@ -3,7 +3,7 @@
 //----------------------------------------------------------------------------------------
 // Copyright(C)            ÐÂÐ¾¿Æ¼¼
 // All rights reserved
-// File name:              FFT_control.v
+// File name:              main.c
 // Last modified Date:     2024/10/26
 // Last Version:           V1.1
 // Descriptions:
