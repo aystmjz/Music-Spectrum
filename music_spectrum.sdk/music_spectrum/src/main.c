@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 //****************************************Copyright (c)***********************************//
 //----------------------------------------------------------------------------------------
-// Copyright(C)            ĞÂĞ¾¿Æ¼¼
+// Copyright(C)            æ–°èŠ¯ç§‘æŠ€
 // All rights reserved
 // File name:              main.c
 // Last modified Date:     2024/10/26
@@ -16,6 +16,7 @@
 //----------------------------------------------------------------------------------------
 //****************************************************************************************//
 #include <stdlib.h>
+#include <stdio.h>
 #include "xgpiops.h"
 #include "unistd.h"
 #include "ff.h"
@@ -25,6 +26,13 @@
 #define IMAGE_WIDTH 800
 #define IMAGE_HEIGHT 480
 #define BMP_HEAD 0x42
+#define DEBUG
+
+#ifdef DEBUG
+#define Debug_print(...) printf(__VA_ARGS__)
+#else
+#define Debug_print(...)
+#endif
 
 XGpioPs Gpio;
 XGpioPs_Config *ConfigPtr;
@@ -43,30 +51,30 @@ uint8_t write_ddr(char *pname)
     uint8_t *databuf;
 
     rval = 0;
-    fbmp = (FIL *)malloc(sizeof(FIL));            /* ÉêÇëÄÚ´æ */
-    databuf = (uint8_t *)malloc(IMAGE_WIDTH * 2); /* ¿ª±ÙIMAGE_WIDTH*2×Ö½ÚµÄÄÚ´æÇøÓò */
+    fbmp = (FIL *)malloc(sizeof(FIL));            /* ç”³è¯·å†…å­˜ */
+    databuf = (uint8_t *)malloc(IMAGE_WIDTH * 2); /* å¼€è¾ŸIMAGE_WIDTH*2å­—èŠ‚çš„å†…å­˜åŒºåŸŸ */
 
     if (databuf == NULL || fbmp == NULL)
     {
-        return 0XFF; /* ÄÚ´æÉêÇëÊ§°Ü */
+        return 0XFF; /* å†…å­˜ç”³è¯·å¤±è´¥ */
     }
 
-    res = f_open(fbmp, (const TCHAR *)pname, FA_READ);  /* ´ò¿ªÎÄ¼ş */
-    res = f_read(fbmp, databuf, BMP_HEAD, (UINT *)&br); /* ÂÔ¹ıbmpÍ·ĞÅÏ¢ */
+    res = f_open(fbmp, (const TCHAR *)pname, FA_READ);  /* æ‰“å¼€æ–‡ä»¶ */
+    res = f_read(fbmp, databuf, BMP_HEAD, (UINT *)&br); /* ç•¥è¿‡bmpå¤´ä¿¡æ¯ */
     if (res == 0)
     {
         for (uint16_t y = 1; y <= IMAGE_HEIGHT; y++)
         {
-            res = f_read(fbmp, databuf, IMAGE_WIDTH * 2, (UINT *)&br); /* ¶Á³öIMAGE_WIDTH*2¸ö×Ö½Ú */
+            res = f_read(fbmp, databuf, IMAGE_WIDTH * 2, (UINT *)&br); /* è¯»å‡ºIMAGE_WIDTH*2ä¸ªå­—èŠ‚ */
             if (res != 0)
             {
                 rval = 0XFF;
                 break;
             }
 
-            for (uint16_t x = 0; x < IMAGE_WIDTH; x++) /* Ñ­»·Ğ´ÈëÄÚ´æIMAGE_WIDTH*2¸ö×Ö½Ú */
+            for (uint16_t x = 0; x < IMAGE_WIDTH; x++) /* å¾ªç¯å†™å…¥å†…å­˜IMAGE_WIDTH*2ä¸ªå­—èŠ‚ */
             {
-                temp = databuf[((x / 4) * 4 + 4 - (x % 4) - 1) * 2 + 1] << 8 | databuf[((x / 4) * 4 + 4 - (x % 4) - 1) * 2]; /* ¶ÔÓ¦¹ØÏµ */
+                temp = databuf[((x / 4) * 4 + 4 - (x % 4) - 1) * 2 + 1] << 8 | databuf[((x / 4) * 4 + 4 - (x % 4) - 1) * 2]; /* å¯¹åº”å…³ç³» */
                 Xil_Out16(DDR_BASE_ADDR + (IMAGE_HEIGHT - y) * IMAGE_WIDTH * 2 + x * 2, temp);
             }
             Xil_DCacheFlushRange(DDR_BASE_ADDR + (IMAGE_HEIGHT - y) * IMAGE_WIDTH * 2, IMAGE_WIDTH * 2);
@@ -75,7 +83,7 @@ uint8_t write_ddr(char *pname)
     }
     else
     {
-        rval = 0XFF; /* ³öÏÖ´íÎó */
+        rval = 0XFF; /* å‡ºç°é”™è¯¯ */
     }
 
     free(databuf);
@@ -83,7 +91,7 @@ uint8_t write_ddr(char *pname)
     return rval;
 }
 
-// »ñÈ¡Í¼Æ¬×ÜÊı
+// è·å–å›¾ç‰‡æ€»æ•°
 uint8_t Get_Pic_Nums(const TCHAR *path)
 {
     uint8_t fileCnt = 0;
@@ -106,76 +114,76 @@ uint8_t Get_Pic_Nums(const TCHAR *path)
     return fileCnt;
 }
 
-void pic_refresh(const TCHAR *path)
+void pic_refresh(const TCHAR *picpath)
 {
     uint8_t res;
-    DIR picdir;           /* Ä¿Â¼ */
-    FILINFO *picfileinfo; /* ÎÄ¼şĞÅÏ¢ */
-    char *pname;          /* ´øÂ·¾¶µÄÎÄ¼şÃû */
-    uint16_t totpicnum;   /* Í¼Æ¬ÎÄ¼ş×ÜÊı */
-    uint16_t curindex;    /* Í¼Æ¬µ±Ç°Ë÷Òı */
+    DIR picdir;           /* ç›®å½• */
+    FILINFO *picfileinfo; /* æ–‡ä»¶ä¿¡æ¯ */
+    char *pname;          /* å¸¦è·¯å¾„çš„æ–‡ä»¶å */
+    uint16_t totpicnum;   /* å›¾ç‰‡æ–‡ä»¶æ€»æ•° */
+    uint16_t curindex;    /* å›¾ç‰‡å½“å‰ç´¢å¼• */
     uint16_t temp;
-    uint16_t *picoffsettbl; /* Í¼Æ¬Ë÷Òı±í */
+    uint16_t *picoffsettbl; /* å›¾ç‰‡ç´¢å¼•è¡¨ */
 
-    if (f_opendir(&picdir, path)) /* ´ò¿ªÍ¼Æ¬ÎÄ¼ş¼Ğ */
+    if (f_opendir(&picdir, picpath)) /* æ‰“å¼€å›¾ç‰‡æ–‡ä»¶å¤¹ */
     {
-        xil_printf("PHOTOÎÄ¼ş¼Ğ´íÎó!");
+        Debug_print("PHOTOæ–‡ä»¶å¤¹é”™è¯¯!\r\n");
         return;
     }
 
-    totpicnum = Get_Pic_Nums(path); /* µÃµ½×ÜÓĞĞ§ÎÄ¼şÊı */
+    totpicnum = Get_Pic_Nums(picpath); /* å¾—åˆ°æ€»æœ‰æ•ˆæ–‡ä»¶æ•° */
 
-    if (totpicnum == 0) /* Í¼Æ¬ÎÄ¼ş×ÜÊıÎª0 */
+    if (totpicnum == 0) /* å›¾ç‰‡æ–‡ä»¶æ€»æ•°ä¸º0 */
     {
-        xil_printf("Ã»ÓĞÍ¼Æ¬ÎÄ¼ş!");
+        Debug_print("æ²¡æœ‰å›¾ç‰‡æ–‡ä»¶!\r\n");
         return;
     }
 
-    picfileinfo = (FILINFO *)malloc(sizeof(FILINFO)); /* Îª³¤ÎÄ¼ş»º´æÇø·ÖÅäÄÚ´æ */
-    pname = malloc(2 * FF_MAX_LFN + 1);               /* Îª´øÂ·¾¶µÄÎÄ¼şÃû·ÖÅäÄÚ´æ */
-    picoffsettbl = malloc(2 * totpicnum);             /* ÉêÇë2*totpicnum¸ö×Ö½ÚµÄÄÚ´æ, ÓÃÓÚ´æ·ÅÍ¼Æ¬ÎÄ¼şË÷Òı */
+    picfileinfo = (FILINFO *)malloc(sizeof(FILINFO)); /* ä¸ºé•¿æ–‡ä»¶ç¼“å­˜åŒºåˆ†é…å†…å­˜ */
+    pname = malloc(2 * FF_MAX_LFN + 1);               /* ä¸ºå¸¦è·¯å¾„çš„æ–‡ä»¶ååˆ†é…å†…å­˜ */
+    picoffsettbl = malloc(2 * totpicnum);             /* ç”³è¯·2*totpicnumä¸ªå­—èŠ‚çš„å†…å­˜, ç”¨äºå­˜æ”¾å›¾ç‰‡æ–‡ä»¶ç´¢å¼• */
 
-    if (picfileinfo == NULL || pname == NULL || picoffsettbl == NULL) /* ÄÚ´æ·ÖÅä³ö´í */
+    if (picfileinfo == NULL || pname == NULL || picoffsettbl == NULL) /* å†…å­˜åˆ†é…å‡ºé”™ */
     {
-        xil_printf("ÄÚ´æ·ÖÅäÊ§°Ü!");
+        Debug_print("å†…å­˜åˆ†é…å¤±è´¥!\r\n");
         return;
     }
 
-    /* ¼ÇÂ¼Ë÷Òı */
-    res = f_opendir(&picdir, path); /* ´ò¿ªÄ¿Â¼ */
-    curindex = 0;                      /* µ±Ç°Ë÷ÒıÎª0 */
-    while (res == FR_OK)               /* È«²¿²éÑ¯Ò»±é */
+    /* è®°å½•ç´¢å¼• */
+    res = f_opendir(&picdir, picpath); /* æ‰“å¼€ç›®å½• */
+    curindex = 0;                      /* å½“å‰ç´¢å¼•ä¸º0 */
+    while (res == FR_OK)               /* å…¨éƒ¨æŸ¥è¯¢ä¸€é */
     {
-        temp = picdir.dptr;                    /* ¼ÇÂ¼µ±Ç°offset */
-        res = f_readdir(&picdir, picfileinfo); /* ¶ÁÈ¡Ä¿Â¼ÏÂµÄÒ»¸öÎÄ¼ş */
+        temp = picdir.dptr;                    /* è®°å½•å½“å‰offset */
+        res = f_readdir(&picdir, picfileinfo); /* è¯»å–ç›®å½•ä¸‹çš„ä¸€ä¸ªæ–‡ä»¶ */
 
         if (res != FR_OK || picfileinfo->fname[0] == 0)
         {
-            break; /* ´íÎóÁË/µ½Ä©Î²ÁË,ÍË³ö */
+            break; /* é”™è¯¯äº†/åˆ°æœ«å°¾äº†,é€€å‡º */
         }
 
-        picoffsettbl[curindex] = temp; /* ¼ÇÂ¼Ë÷Òı */
+        picoffsettbl[curindex] = temp; /* è®°å½•ç´¢å¼• */
         curindex++;
     }
 
-    curindex = 0;                      /* ´Ó0¿ªÊ¼ÏÔÊ¾ */
-    res = f_opendir(&picdir, path); /* ´ò¿ªÄ¿Â¼ */
+    curindex = 0;                      /* ä»0å¼€å§‹æ˜¾ç¤º */
+    res = f_opendir(&picdir, picpath); /* æ‰“å¼€ç›®å½• */
 
     while (res == FR_OK)
     {
-        dir_sdi(&picdir, picoffsettbl[curindex]); /* ¸Ä±äµ±Ç°Ä¿Â¼Ë÷Òı */
-        res = f_readdir(&picdir, picfileinfo);    /* ¶ÁÈ¡Ä¿Â¼ÏÂµÄÒ»¸öÎÄ¼ş */
+        dir_sdi(&picdir, picoffsettbl[curindex]); /* æ”¹å˜å½“å‰ç›®å½•ç´¢å¼• */
+        res = f_readdir(&picdir, picfileinfo);    /* è¯»å–ç›®å½•ä¸‹çš„ä¸€ä¸ªæ–‡ä»¶ */
 
         if (res != FR_OK || picfileinfo->fname[0] == 0)
         {
-            break; /* ´íÎóÁË/µ½Ä©Î²ÁË,ÍË³ö */
+            break; /* é”™è¯¯äº†/åˆ°æœ«å°¾äº†,é€€å‡º */
         }
-        strcpy((char *)pname, path);
+        strcpy((char *)pname, picpath);
         strcat((char *)pname, "/");
-        strcat((char *)pname, (const char *)picfileinfo->fname); /* ½«ÎÄ¼şÃû½ÓÔÚºóÃæ */
-        xil_printf("%d/%d :%s", curindex + 1, totpicnum, picfileinfo->fname);
+        strcat((char *)pname, (const char *)picfileinfo->fname); /* å°†æ–‡ä»¶åæ¥åœ¨åé¢ */
+        Debug_print("%d/%d :%s\r\n", curindex + 1, totpicnum, picfileinfo->fname);
 
-        if (write_ddr(pname) != 0) /* Ğ´ÈëDDR */
+        if (write_ddr(pname) != 0) /* å†™å…¥DDR */
             break;
 
         uint8_t led_cnt = 0;
@@ -200,8 +208,6 @@ void pic_refresh(const TCHAR *path)
 
 int main(void)
 {
-    DIR dir;
-
     ConfigPtr = XGpioPs_LookupConfig(XPAR_PS7_GPIO_0_DEVICE_ID);
     XGpioPs_CfgInitialize(&Gpio, ConfigPtr, ConfigPtr->BaseAddr);
     XGpioPs_SetDirectionPin(&Gpio, 7, 1);
@@ -211,30 +217,19 @@ int main(void)
 
     while (1)
     {
-
-        res_sd =f_opendir(&dir, path);
+        res_sd = f_mount(&fatfs, path, 0);
         if (res_sd == FR_OK)
         {
-            xil_printf("SD¿¨¹ÒÔØ³É¹¦!\r\n");
+            Debug_print("SDå¡æŒ‚è½½æˆåŠŸ!\r\n");
             XGpioPs_WritePin(&Gpio, 7, 0x1);
             pic_refresh(picpath);
         }
         else
         {
-            res_sd = f_mount(&fatfs, path, 0);
-            if (res_sd == FR_OK)
-            {
-                xil_printf("SD¿¨¹ÒÔØ³É¹¦!\r\n");
-                XGpioPs_WritePin(&Gpio, 7, 0x1);
-                pic_refresh(picpath);
-            }
-            else
-            {
-                xil_printf("SD¿¨¹ÒÔØÊ§°Ü!\r\n");
-                XGpioPs_WritePin(&Gpio, 7, 0x0);
-            }
+            Debug_print("SDå¡æŒ‚è½½å¤±è´¥!\r\n");
+            XGpioPs_WritePin(&Gpio, 7, 0x0);
         }
-        xil_printf("³öÏÖ´íÎó£¬ÕıÔÚÖØÊÔ\r\n");
+        Debug_print("å‡ºç°é”™è¯¯ï¼Œæ­£åœ¨é‡è¯•\r\n");
     }
 
     return 0;
