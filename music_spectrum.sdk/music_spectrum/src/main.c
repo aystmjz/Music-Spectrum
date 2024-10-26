@@ -106,7 +106,7 @@ uint8_t Get_Pic_Nums(const TCHAR *path)
     return fileCnt;
 }
 
-void pic_refresh(const TCHAR *picpath)
+void pic_refresh(const TCHAR *path)
 {
     uint8_t res;
     DIR picdir;           /* 目录 */
@@ -117,13 +117,13 @@ void pic_refresh(const TCHAR *picpath)
     uint16_t temp;
     uint16_t *picoffsettbl; /* 图片索引表 */
 
-    if (f_opendir(&picdir, picpath)) /* 打开图片文件夹 */
+    if (f_opendir(&picdir, path)) /* 打开图片文件夹 */
     {
         xil_printf("PHOTO文件夹错误!");
         return;
     }
 
-    totpicnum = Get_Pic_Nums(picpath); /* 得到总有效文件数 */
+    totpicnum = Get_Pic_Nums(path); /* 得到总有效文件数 */
 
     if (totpicnum == 0) /* 图片文件总数为0 */
     {
@@ -142,7 +142,7 @@ void pic_refresh(const TCHAR *picpath)
     }
 
     /* 记录索引 */
-    res = f_opendir(&picdir, picpath); /* 打开目录 */
+    res = f_opendir(&picdir, path); /* 打开目录 */
     curindex = 0;                      /* 当前索引为0 */
     while (res == FR_OK)               /* 全部查询一遍 */
     {
@@ -159,7 +159,7 @@ void pic_refresh(const TCHAR *picpath)
     }
 
     curindex = 0;                      /* 从0开始显示 */
-    res = f_opendir(&picdir, picpath); /* 打开目录 */
+    res = f_opendir(&picdir, path); /* 打开目录 */
 
     while (res == FR_OK)
     {
@@ -170,7 +170,7 @@ void pic_refresh(const TCHAR *picpath)
         {
             break; /* 错误了/到末尾了,退出 */
         }
-        strcpy((char *)pname, picpath);
+        strcpy((char *)pname, path);
         strcat((char *)pname, "/");
         strcat((char *)pname, (const char *)picfileinfo->fname); /* 将文件名接在后面 */
         xil_printf("%d/%d :%s", curindex + 1, totpicnum, picfileinfo->fname);
@@ -200,6 +200,8 @@ void pic_refresh(const TCHAR *picpath)
 
 int main(void)
 {
+    DIR dir;
+
     ConfigPtr = XGpioPs_LookupConfig(XPAR_PS7_GPIO_0_DEVICE_ID);
     XGpioPs_CfgInitialize(&Gpio, ConfigPtr, ConfigPtr->BaseAddr);
     XGpioPs_SetDirectionPin(&Gpio, 7, 1);
@@ -209,7 +211,8 @@ int main(void)
 
     while (1)
     {
-        res_sd = f_mount(&fatfs, path, 0);
+
+        res_sd =f_opendir(&dir, path);
         if (res_sd == FR_OK)
         {
             xil_printf("SD卡挂载成功!\r\n");
@@ -218,8 +221,18 @@ int main(void)
         }
         else
         {
-            xil_printf("SD卡挂载失败!\r\n");
-            XGpioPs_WritePin(&Gpio, 7, 0x0);
+            res_sd = f_mount(&fatfs, path, 0);
+            if (res_sd == FR_OK)
+            {
+                xil_printf("SD卡挂载成功!\r\n");
+                XGpioPs_WritePin(&Gpio, 7, 0x1);
+                pic_refresh(picpath);
+            }
+            else
+            {
+                xil_printf("SD卡挂载失败!\r\n");
+                XGpioPs_WritePin(&Gpio, 7, 0x0);
+            }
         }
         xil_printf("出现错误，正在重试\r\n");
     }
