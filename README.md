@@ -19,7 +19,12 @@ Fpass:1000 Fstop:2000
 
 彩虹律动颜色数据:
 S=0.85;L=0.6;H=0~360,128级
+
 ![image](https://github.com/user-attachments/assets/5539846d-315b-44b6-8a4f-5fbadda27d49)
+
+图像混合模式为强光
+
+![image](https://github.com/user-attachments/assets/d62969b7-7889-4bce-9f69-6df4809f4a60)
 
 显示效果：
 ![1](https://github.com/user-attachments/assets/d9ffecb5-10fd-4a41-bfb3-76ac68e4100e)
