@@ -49,8 +49,8 @@ set_property PACKAGE_PIN W16 [get_ports {TFT_rgb[1]}]
 set_property PACKAGE_PIN Y17 [get_ports {TFT_rgb[0]}]
 set_property PACKAGE_PIN K16 [get_ports uart_rx]
 
-set_property IOSTANDARD LVCMOS33 [get_ports reset_n]
-set_property PACKAGE_PIN F20 [get_ports reset_n]
+set_property IOSTANDARD LVCMOS33 [get_ports key_pl]
+set_property PACKAGE_PIN F20 [get_ports key_pl]
 
 set_property IOSTANDARD LVCMOS33 [get_ports I2S_MCLK]
 set_property IOSTANDARD LVCMOS33 [get_ports I2S_BCLK]

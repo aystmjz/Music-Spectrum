@@ -2,7 +2,7 @@
 
 module music_spectrum_top(
   //user
-    input                        reset_n                  ,
+    input                        key_pl                  ,
     output                       led                      ,
   //TFT Interface
     output             [  15: 0] TFT_rgb                  ,//TFT数据输出
@@ -10,7 +10,7 @@ module music_spectrum_top(
     output                       TFT_vs                   ,//TFT场同步信号
     output                       TFT_clk                  ,//TFT像素时钟
     output                       TFT_de                   ,//TFT数据使能
-    output                       TFT_pwm                  ,//TFT背光控制
+    output reg                   TFT_pwm                  ,//TFT背光控制
   //Rx uart Interface
     input                        uart_rx                  ,
   //ov5640 init IIC interface
@@ -199,7 +199,7 @@ module music_spectrum_top(
     wire                         pl_reset_n               ;
     wire                         reset_pre                ;
     reg                [  19: 0] reset_sync               ;
-    assign                       pl_reset_n              = ps2pl_resetn_0 & reset_n;
+    assign                       pl_reset_n              = ps2pl_resetn_0;
     assign                       reset_pre               = ~pll_locked;
   
   //PS先释放复位，PL的逻辑复位释放往后延迟20个时钟周期
@@ -332,7 +332,55 @@ disp_buffer_updater u_disp_buffer_updater(
     .Disp_PCLK                   (TFT_clk                 )
   );
     assign                       TFT_rgb                 = {Disp_Red,Disp_Green,Disp_Blue};
-    assign                       TFT_pwm                 = 1'b1;
+
+    wire                         Key_P                    ;
+    reg                [   1: 0] pwm_mod                  ;
+    reg                [  20: 0] pwm_cnt                  ;
+    parameter                    PWM_CNT                 = 500_000;
+    parameter                    PWM_MOD_INIT            = 1     ;
+    parameter                    PWM_MOD_1               = 0     ;
+    parameter                    PWM_MOD_2               = PWM_CNT/2/2;
+    parameter                    PWM_MOD_3               = PWM_CNT/2;
+    parameter                    PWM_MOD_4               = PWM_CNT;
+    
+  always @(*)
+  begin
+    case (pwm_mod)
+      0: TFT_pwm = pwm_cnt<=PWM_MOD_1 ? 1 : 0;
+      1: TFT_pwm = pwm_cnt<=PWM_MOD_2 ? 1 : 0;
+      2: TFT_pwm = pwm_cnt<=PWM_MOD_3 ? 1 : 0;
+      3: TFT_pwm = pwm_cnt<=PWM_MOD_4 ? 1 : 0;
+      default: TFT_pwm=0;
+    endcase
+  end
+    
+key u_key(
+    .clk                         (loc_clk100m             ),
+    .rst_n                       (pl_reset_n              ),
+    .Key                         (key_pl                  ),
+    .Key_P                       (Key_P                   ),
+    .Key_R                       (                        )
+);
+
+always @(posedge loc_clk100m or negedge pl_reset_n)
+begin
+    if(!pl_reset_n)
+      pwm_mod <= PWM_MOD_INIT;
+    else if(Key_P == 1)
+      pwm_mod <= pwm_mod+1;
+    else
+      pwm_mod <= pwm_mod;
+end
+
+always @(posedge loc_clk100m or negedge pl_reset_n)
+begin
+    if(!pl_reset_n)
+      pwm_cnt <= 1;
+    else if(pwm_cnt==PWM_CNT)
+      pwm_cnt <= 1;
+    else
+      pwm_cnt <= pwm_cnt+1;
+end
 
 
   fifo_axi4_adapter #(
