@@ -4,6 +4,8 @@
 
 ADC采样率24bit 48KHZ,1024点FFT,频谱幅度开根号显示,波形经FIR滤波后触发显示，固定零点稳定在屏幕中心
 
+演示视频：https://www.bilibili.com/video/BV1FDfbYBEGQ
+
 结构框图:
 
 ![结构框图](https://github.com/user-attachments/assets/da4a05fc-6d78-474e-b642-b317d63c1956)
