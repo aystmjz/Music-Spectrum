@@ -6,6 +6,8 @@ ADC采样率24bit 48KHZ,1024点FFT,频谱幅度开根号显示,波形经FIR滤�
 
 演示视频：https://www.bilibili.com/video/BV1FDfbYBEGQ
 
+文档：请滑到最底下
+
 结构框图:
 
 ![结构框图](https://github.com/user-attachments/assets/da4a05fc-6d78-474e-b642-b317d63c1956)
@@ -33,3 +35,8 @@ S=0.85;L=0.6;H=0~360,128级
 ![2](https://github.com/user-attachments/assets/10ac0451-b4bd-4cf1-8212-0e55055b6d63)
 ![3](https://github.com/user-attachments/assets/40e0fe03-bfd5-4d2a-b685-7de75bd23ee6)
 ![4](https://github.com/user-attachments/assets/7b7ab2ce-66d9-42c9-babf-22da2685dae5)
+
+简单写了文档，可供参考（图片比较大，可能加载比较慢）
+
+![报告_01](https://github.com/user-attachments/assets/b3a6ddc6-b67c-4e6b-99b2-e098ec4c4243)
+
